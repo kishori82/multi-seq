@@ -1,0 +1,3 @@
+-b /home/kishori/dranalysis/drseq_mini_1.fastq -r /home/kishori/dranalysis/drseq_mini_2.fastq  -g /home/kishori/dranalysis/mm10_chr18_refgenes.txt  -G /home/kishori/dranalysis/bowtie2_chr18_index/chr18.fa -o  /home/kishori/dranalysis/output --refindexdir /home/kishori/dranalysis/refindex --refindexname  small_index  -v 2 -s test_sample
+
+-b /home/ubuntu/drseqanalysis/input/drseq_test_400k_1.fastq -r /home/ubuntu/drseqanalysis/input/drseq_test_400k_2.fastq  -g /home/ubuntu/drseqanalysis/input/mm10_chr18_refgenes.txt  -G /home/ubuntu/drseqanalysis/input/chr18.fa -o  /home/ubuntu/drseqanalysis/input/test_small --refindexdir /home/ubuntu/drseqanalysis/refindex --refindexname  small_index  -v 2

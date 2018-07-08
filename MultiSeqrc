@@ -1,0 +1,15 @@
+#!/bin/bash
+
+echo "Adding installation folder of MultiSeq to PYTHONPATH"
+echo "Your MultiSeq is installed in :"
+echo "Please set variable MULTISEQ_PATH in file template_config.txt as:"
+CURRDIR=`pwd`
+cd `dirname ${BASH_SOURCE[0]}`
+export MULTISEQ_PATH=`pwd`
+export MULTISEQLIB=${MULTISEQ_PATH}:${MULTISEQ_PATH}/libs
+PYTHONPATH=${MULTISEQLIB}:$PYTHONPATH
+echo PYTHONPATH " : "${PYTHONPATH}
+cd $CURRDIR
+export PYTHONPATH
+echo "MULTISEQ_PATH  "${MULTISEQ_PATH}
+echo ""

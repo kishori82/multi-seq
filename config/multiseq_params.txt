@@ -1,0 +1,25 @@
+#MultiSeq Parameters
+
+# e.g. fasta/fastq
+INPUT:format FASTQ
+
+# QC params
+QC:min_umi_per_barcode 100
+QC:min_gene_per_barcode 50
+
+#either on or off
+QC:q30filter on
+
+# bowtie2 or STAR
+ALIGNMENT:aligner bowtie2
+
+# e.g. yes, skip, redo
+multiseq_steps:PREPROCESS yes
+multiseq_steps:CREATE_REF_GENOME_INDEX yes
+multiseq_steps:ALIGN_READS redo
+multiseq_steps:CREATE_EXPRESSION_MATRIX redo
+multiseq_steps:CREATE_FIGURES yes
+
+
+
+

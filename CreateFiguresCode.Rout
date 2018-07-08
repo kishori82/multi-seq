@@ -1,0 +1,1252 @@
+
+R version 3.2.3 (2015-12-10) -- "Wooden Christmas-Tree"
+Copyright (C) 2015 The R Foundation for Statistical Computing
+Platform: x86_64-pc-linux-gnu (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+[Previously saved workspace restored]
+
+> # Load packages
+> library(splitstackshape)
+Loading required package: data.table
+> library(pvclust)
+
+Attaching package: ‘pvclust’
+
+The following objects are masked _by_ ‘.GlobalEnv’:
+
+    msfit, msplot, parPvclust, pvclust, pvpick, pvrect, seplot
+
+> library(dplyr)
+
+Attaching package: ‘dplyr’
+
+The following objects are masked from ‘package:data.table’:
+
+    between, first, last
+
+The following objects are masked from ‘package:stats’:
+
+    filter, lag
+
+The following objects are masked from ‘package:base’:
+
+    intersect, setdiff, setequal, union
+
+> library(vegan)
+Loading required package: permute
+Loading required package: lattice
+This is vegan 2.4-4
+> library(pheatmap)
+> library(doBy)
+> library(ecodist)
+
+Attaching package: ‘ecodist’
+
+The following object is masked from ‘package:vegan’:
+
+    mantel
+
+Warning message:
+In FUN(X[[i]], ...) :
+  failed to assign RegisteredNativeSymbol for permute to permute since permute is already defined in the ‘ecodist’ namespace
+> library(reshape2)
+
+Attaching package: ‘reshape2’
+
+The following objects are masked from ‘package:data.table’:
+
+    dcast, melt
+
+> library(ggplot2)
+> library(RColorBrewer)
+> library(stringr)
+> library(gridExtra)
+
+Attaching package: ‘gridExtra’
+
+The following object is masked from ‘package:dplyr’:
+
+    combine
+
+> library(grid)
+> 
+> library(ape)
+> library(geiger)
+> source("http://bioconductor.org/biocLite.R")
+Bioconductor version 3.2 (BiocInstaller 1.20.3), ?biocLite for help
+A new version of Bioconductor is available after installing the most recent
+  version of R; see http://bioconductor.org/install
+> 
+> flag<-c()
+> flag[1]  <- 1   # 1. create the length distribution histogram for each sample
+> flag[2]  <- 1   # 2. create the length distribution histogram for each sample
+> flag[3]  <- 1   # 3. create  pie char for vregion counts for each sample
+> flag[4]  <- 1   # 4. create bar plots for vregion counts for each sample
+> flag[5]  <- 1   # 5. create stacked barplots for vregion counts for each sample
+> flag[6]  <- 1   # 6. create 3 x 3 histograms for each sample 
+> flag[7]  <- 1   # 7. create the OTU size distribution histogram
+> flag[8]  <- 1   # 8. create the number of vregions per node distribution histogram 
+> flag[9]  <- 0   # 9. create the rarefaction curve
+> flag[10] <- 1   # 10. create the counts and percentage per taxon at 3 levels, phylum, class, order
+> flag[11] <- 1   # 11. create the samplewise tree at 3 levels
+> flag[12] <- 0   # 12. create the bubble plots
+> flag[13] <- 1   # 13. create number of sequences (#molecues) for each Taxonomy
+> 
+> 
+> 
+> #     process the command line arguments 
+> args <- commandArgs(trailingOnly=TRUE)
+> lib_dir=args[1]
+> source(paste(lib_dir, "pvclust_bcdist.R", sep="/"))
+> 
+> 
+> #     set input/output directories
+> input_dir <- args[2] #"/home/ubuntu/RiboCensus/regtests/zymofragmentation/"
+> output_dir <- args[2] # "/home/ubuntu/RiboCensus/regtests/zymofragmentation/combined/results/figures/"
+> 
+> # 1. create the length distribution histogram for each sample
+> ###################
+> if( flag[1]==1) {
++     pdf(paste(output_dir, "combined", "results", "figures",  "1.samplewise_box-plot.pdf", sep="/"))
++     colors= c("red", "yellow", "green", "violet", "orange", "blue", "pink", "cyan") 
++     attach(mtcars)
++     nrows = as.integer((length(args))/3)
++     #par(mfrow=c(nrows, 3))
++     par(mfrow=c(2, 3))
++     par(cex=0.6)
++     for(i in 3:length(args)) {
++       filename = paste(args[i], "mapping", "txt", sep=".")
++       filename_path=paste(input_dir, args[i], "preprocessed", filename, sep="/")
++       lengths <- read.table(filename_path, header = F, sep = "\t")[3]
++       colnames(lengths)[1] <- "L"
++       boxplot(lengths$L, xaxis=FALSE,  ylab="length of sequences", main= paste(args[i], "\n", "#seqs", toString(length(lengths$L)), sep=" "), sep="", las=1)
++     }
++     dev.off()
++ }
+The following object is masked from package:ggplot2:
+
+    mpg
+
+null device 
+          1 
+> #
+> 
+> # 2. create the length distribution histogram for each sample
+> if( flag[2]==1) {
++    pdf(paste(output_dir, "combined", "results", "figures",  "2.samplewise_sequence.length_histogram.pdf", sep="/"))
++    colors= c("red", "yellow", "green", "violet", "orange", "blue", "pink", "cyan") 
++    attach(mtcars)
++    nrows = as.integer((length(args)-3)/2)
++    par(mfrow=c(3, 2))
++    par(cex=0.4)
++    for(i in 3:length(args)) {
++      filename = paste(args[i], "mapping", "txt", sep=".")
++      filename_path=paste(input_dir, args[i], "preprocessed", filename, sep="/")
++      lengths <- read.table(filename_path, header = F, sep = "\t")[3]
++      colnames(lengths)[1] <- "L"
++      hist(lengths$L, xlab="length of sequences", ylab="frequency", main=args[i], sep="", las=1)
++    }
++    dev.off()
++ }
+The following objects are masked from mtcars (pos = 3):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following object is masked from package:ggplot2:
+
+    mpg
+
+null device 
+          1 
+There were 32 warnings (use warnings() to see them)
+> #--------------------
+> 
+> # 3. create  pie char for vregion counts for each sample
+> if( flag[3]==1) {
++    dat<-read.table(paste(output_dir, "combined", "results",'vregion_count_stats.txt', sep='/'), sep='\t', header=TRUE)
++    rownames = rownames(dat)
++    colnames = colnames(dat)
++    
++    pdf(paste(output_dir, "combined", "results", "figures",  "3.samplewise_vregion_count_stats.pdf", sep="/"))
++    attach(mtcars)
++    nrows = as.integer((length(rownames))/2)
++    par(mfrow=c(2, 2))
++    par(cex=0.6)
++    
++    print(dat)
++    print(rownames)
++    print(colnames)
++    for(i in 1:length(rownames)) {
++       print(i)
++       print(dat[i,])
++       pie(as.matrix(dat[i,]), labels=colnames, main=paste(rownames[i], "\n", "proportion of V regions", sep=""), col=terrain.colors(length(colnames)))
++    }
++    print(rownames)
++    dev.off()
++ }
+The following objects are masked from mtcars (pos = 3):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 4):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following object is masked from package:ggplot2:
+
+    mpg
+
+                        V1    V2    V3    V4    V5    V6    V7    V8    V9
+complete-agrinos      5418 16290 16569 17026 17167 17146 17080 17067 16470
+complete-wb          22263 23195 22897 22373 23121 23202 19509 22113  6436
+complete-zymo         3745  3758  3814  3913  3962  3947  3938  3936  3807
+select-379-sample-1  25158 20954 12818 12639 14689  5525   150   170   132
+select-379-sample-2  22957 13144  5725 21130 27351  4629  6878  8150  3636
+select-434-sample-1  21465 20887  7027     0     7 18112     1     0    45
+select-438-sample-1   8032  7261  1027    24    17  4972     7     2     3
+select-481-sample-16  2393  1329     1     0     1   141     0     0     0
+[1] "complete-agrinos"     "complete-wb"          "complete-zymo"       
+[4] "select-379-sample-1"  "select-379-sample-2"  "select-434-sample-1" 
+[7] "select-438-sample-1"  "select-481-sample-16"
+[1] "V1" "V2" "V3" "V4" "V5" "V6" "V7" "V8" "V9"
+[1] 1
+                   V1    V2    V3    V4    V5    V6    V7    V8    V9
+complete-agrinos 5418 16290 16569 17026 17167 17146 17080 17067 16470
+[1] 2
+               V1    V2    V3    V4    V5    V6    V7    V8   V9
+complete-wb 22263 23195 22897 22373 23121 23202 19509 22113 6436
+[1] 3
+                V1   V2   V3   V4   V5   V6   V7   V8   V9
+complete-zymo 3745 3758 3814 3913 3962 3947 3938 3936 3807
+[1] 4
+                       V1    V2    V3    V4    V5   V6  V7  V8  V9
+select-379-sample-1 25158 20954 12818 12639 14689 5525 150 170 132
+[1] 5
+                       V1    V2   V3    V4    V5   V6   V7   V8   V9
+select-379-sample-2 22957 13144 5725 21130 27351 4629 6878 8150 3636
+[1] 6
+                       V1    V2   V3 V4 V5    V6 V7 V8 V9
+select-434-sample-1 21465 20887 7027  0  7 18112  1  0 45
+[1] 7
+                      V1   V2   V3 V4 V5   V6 V7 V8 V9
+select-438-sample-1 8032 7261 1027 24 17 4972  7  2  3
+[1] 8
+                       V1   V2 V3 V4 V5  V6 V7 V8 V9
+select-481-sample-16 2393 1329  1  0  1 141  0  0  0
+[1] "complete-agrinos"     "complete-wb"          "complete-zymo"       
+[4] "select-379-sample-1"  "select-379-sample-2"  "select-434-sample-1" 
+[7] "select-438-sample-1"  "select-481-sample-16"
+null device 
+          1 
+> #--------------------------------------------------------
+> print("hello")
+[1] "hello"
+> 
+> 
+> 
+> # 4. create bar plots for vregion counts for each sample
+> if( flag[4]==1) {
++    dat<-read.table(paste(output_dir, "combined", "results",'vregion_count_stats.txt', sep='/'), sep='\t', header=TRUE)
++    rownames = rownames(dat)
++    colnames = colnames(dat)
++    
++    pdf(paste(output_dir, "combined", "results", "figures",  "4.samplewise_region_barplot_stats.pdf", sep="/"))
++    attach(mtcars)
++    nrows = as.integer((length(rownames))/2)
++    par(mfrow=c(3, 2))
++    par(cex=0.6)
++    
++    for(i in 1:length(rownames)) {
++       #barplot(as.matrix(dat[i,]), main=rownames[i], col=terrain.colors(length(colnames)))
++       barplot(as.matrix(dat[i,]), main=rownames[i], ylab="frequency", las=1,  col=rgb(0.0,0.0,0.0,0.0))
++    }
++    dev.off()
++ }
+The following objects are masked from mtcars (pos = 3):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 4):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 5):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following object is masked from package:ggplot2:
+
+    mpg
+
+null device 
+          1 
+> #--------------------------
+> 
+> # 5.  create stacked barplots for vregion counts for each sample
+> if(flag[5]==1) {
++    print(paste(output_dir, "combined", "results",'vregion_stats.txt', sep='/'))
++    pdf(paste(output_dir, "combined", "results", "figures",  "5.samplewise_vregion_stats.pdf", sep="/"))
++    par(mar=c(4,4,4,10))
++    barplot(as.matrix(dat), horiz=TRUE, las=2, cex.names=0.6, col=brewer.pal(nrow(dat), "Paired"), main="Number of vregions per sample",
++        legend=rownames, legend.text = TRUE, xlab="number of V1-V9 regions", args.legend = list(x = "topright", bty = "n", inset=c(-0.45, 0), cex= 0.65)
++    )
++    dev.off()
++ }
+[1] "/home/ubuntu/RiboCensus/output8/combined/results/vregion_stats.txt"
+null device 
+          1 
+Warning messages:
+1: In plot.window(xlim, ylim, log = log, ...) :
+  "legend" is not a graphical parameter
+2: In axis(if (horiz) 2 else 1, at = at.l, labels = names.arg, lty = axis.lty,  :
+  "legend" is not a graphical parameter
+3: In title(main = main, sub = sub, xlab = xlab, ylab = ylab, ...) :
+  "legend" is not a graphical parameter
+4: In axis(if (horiz) 1 else 2, cex.axis = cex.axis, ...) :
+  "legend" is not a graphical parameter
+> #--------------------------
+> 
+> # 6. create 3 x 3 histograms for each sample 
+> if(flag[6]==1) {
++    lines<-readLines(paste(output_dir, "combined", "results",'vregion_length_stats.txt', sep='/'))
++    pdf(paste(output_dir, "combined", "results", "figures",  paste("6.samplewise_vregion_stats.pdf", sep="."), sep="/"))
++    attach(mtcars)
++    par(mfrow=c(3, 3))
++    par(cex=0.6)
++    #process one line at a time
++    for(i in 1:length(lines) ) {
++       fields = strsplit(lines[i], "\t")[[1]]
++       if(i%%10==1) {  # first of each 10 lines is a sample name
++          sample<-fields[1]
++       } else {  # there after is the vregions
++          vregion = fields[1]
++          values<-array()
++          for(j in 2:length(fields) ) {
++            values[j-1]= as.integer(fields[j]) 
++          }
++          title <- vregion
++          if(i%%10==2) {
++            title<-paste(vregion, sample, sep=" ")
++          }
++          #sprintf( "%d %d \n", i, length(values))
++          if (length(values) > 5 ) {
++             #print(length(values))
++             #print(values)
++             hist(values,  breaks =5, xlab="length of extracted V regions", ylab="frequency", main=title, las=1)
++          }else {
++             print(values)
++          }
++          #sprintf( "%d %d %d %d\n", i, min(values), max(values), length(values))
++          #print( "%d %d %d %d\n", i, min(values), max(values), length(values))
++          #hist(values,  breaks =5, xlab="length of extracted V regions", ylab="frequency", main=title, las=1)
++       }
++    }
++    dev.off()
++ }
+The following objects are masked from mtcars (pos = 3):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 4):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 5):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 6):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following object is masked from package:ggplot2:
+
+    mpg
+
+[1] NA
+[1] 28
+[1] NA
+[1] 55 60
+[1] 35 35 35
+[1] 68
+[1] NA
+[1] 99
+[1] NA
+[1] NA
+[1] NA
+null device 
+          1 
+Warning messages:
+1: NAs introduced by coercion 
+2: NAs introduced by coercion 
+3: NAs introduced by coercion 
+4: NAs introduced by coercion 
+5: NAs introduced by coercion 
+6: NAs introduced by coercion 
+> #--------------------------
+> 
+> # 7. create the OTU size distribution histogram
+> if(flag[7]==1) {
++    colors= c("green", "violet", "orange", "blue", "pink", "cyan") 
++    print(paste(input_dir, "combined", "results", "otu_sizes.txt",  sep="/"))
++    otu_sizes <- read.table(paste(input_dir, "combined", "results", "otu_sizes.txt",  sep="/"), header = T, sep = "\t")[2]
++    #print(otu_sizes)
++    pdf(paste(output_dir, "combined", "results", "figures",  "7.samplewise_OTU_size_histogram.pdf",  sep="/"))
++    colnames(otu_sizes)[1] <- "S"
++    
++    #hist(otu_sizes$S,  breaks =40, xlab="molecules per OTU", ylab="Frequency", main="Histogram of Size of OTUs", ylim=c(0, quantile(otu_sizes$S, c(.90)))
++    hist(otu_sizes$S,  breaks =40, xlab="molecules per OTU", ylab="Frequency", main="Histogram of Size of OTUs" )
++    dev.off()
++ }
+[1] "/home/ubuntu/RiboCensus/output8/combined/results/otu_sizes.txt"
+null device 
+          1 
+> #--------------------
+> 
+> ###################
+> # 8. create the number of vregions per node distribution histogram 
+> if(flag[8]==1) {
++    node_sizes <- read.table(paste(input_dir, "combined", "results", "node_sizes.txt",  sep="/"), header = T, sep = "\t")[2]
++    colors= c("green", "violet", "orange", "blue", "pink", "cyan") 
++    #print(node_sizes)
++    pdf(paste(output_dir, "combined", "results", "figures",  "8.combined_num_vregions_histogram.pdf",  sep="/"))
++    colnames(node_sizes)[1] <- "N"
++    hist(node_sizes$N, xlab="number V regions per molecule", ylab="frequency",  main="Histogram for number of V regions (all samples)")
++    dev.off()
++ }
+null device 
+          1 
+> #--------------------
+> 
+> # 9. create the rarefaction curve
+> if(flag[9]==1) {
++    pdf(file = paste(output_dir, "combined", "results","figures", "9.samplewise_rarefaction_curve.pdf", sep="/"))
++    colors= c("red", "yellow", "green", "violet", "orange", "blue", "pink", "cyan") 
++    attach(mtcars)
++    par(mfrow=c(3, 2))
++    par(cex=0.4)
++    df_otu <- read.table(paste(input_dir, "combined", "results", "otu_table.txt",  sep="/"), header = T, sep = "\t", quote="\"")
++    x <- length(df_otu)-1
++    column_names <-colnames(df_otu)
++    for(i in 2:x) {
++      x <- df_otu[,i]
++      x<-x[x!=0]
++      rarecurve(as.matrix(t(x)), step = 1, 3, xlab = "number of molecules sampled", ylab = "number of distinct OTUs", label = TRUE, main=column_names[i])
++    }
++    dev.off()
++ }
+> #--------------------------
+> 
+> # 10. create the counts and percentage per taxon at 3 levels, phylum, class, order
+> if(flag[10]==1) {
++    colors= c("red", "yellow", "green", "violet", "orange", "blue", "pink", "cyan") 
++    otu_table <- read.table(paste(input_dir, "combined", "results", "otu_table.txt",  sep="/"), header = T, sep = "\t", quote="\"")
++ 
++ 
++    print( nrow(otu_table))
++ 
++    cols <- length(otu_table)-1
++    column_names <-colnames(otu_table)
++    
++    tax5<-str_split_fixed(otu_table$taxonomy, ";", 7)
++ 
++    for(i in 1:nrow(tax5)) {
++      for( j in 1:7) {
++        if( tax5[i,j] %in% "") {
++          tax5[i,j] = "unknowns"
++        }
++      }
++    }
++ 
++    levels = c("life", "domain", "phylum", "class",  "order", "family", "genus", "species") 
++    colnames(tax5)<-c("domain", "phylum", "class", "order", "family", "genus", "species")
++ 
++    numcols<-ncol(otu_table)
++    otu_table_ext<-cbind(otu_table, tax5)
++       
++    for(j in c(3, 4, 5, 6, 7, 8) ) {
++        #pdf(file = paste(output_dir, "combined", "results","figures", sprintf("10.%d.samplewise_%s_count_percentage.pdf", j-3, levels[j]), sep="/"), height=11, width=8.5)
++        pdf(file = paste(output_dir, "combined", "results","figures", sprintf("10.%d.samplewise_%s_count_percentage.pdf", j-2, levels[j]), sep="/") )
++        par(cex=0.4)
++        attach(mtcars)
++        for(i in 2:cols) {
++          par(mfrow=c(1, 1))
++          par(mar=c(5,10,4,6)) 
++          tot<-sum(otu_table_ext[,i])
++          e<-aggregate(otu_table_ext[,i], by=list(level=otu_table_ext[[numcols + j -1]]), FUN=sum)
++          
++          if( tot == 0 ) {
++             tot<-1
++          }
++          f<-e[order(e$x), ]
++ 
++          sorted_values<-sort(f$x, decreasing=TRUE)
++          N <- nrow(f)
++          if( N > 25 ) {
++            cutoffN<-sorted_values[25] 
++            f<-f[f$x > cutoffN, ]
++          }
++          f <-f[ order(f$x), ]
++ 
++          #f<-data.frame(phylum=f$phylum, count= f$x, percent=sprintf("%.2f", 100*(f$x/tot)) )
++          f<-data.frame(level=f$level, count= f$x, percent=100*(f$x/tot)) 
++          f<-f[f$count > 0, ]
++          print(f$percent)
++ 
++          if( length(f$percent) >= 1 ) {
++             bar<-barplot(f$percent, beside=TRUE, las=1, xlim=c(0, 115), cex.names=0.45,  horiz=TRUE, names.arg= as.array(f$level), col=rgb(0.0,0.0,0.0,0.0), main=column_names[i], xlab="%")
++             text(y=bar, x = f$percent, label = f$count, pos = 4, cex = 0.7)
++          }
++        }
++        dev.off()
++    }
++ }
+[1] 786
+The following objects are masked from mtcars (pos = 3):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 4):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 5):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 6):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 7):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following object is masked from package:ggplot2:
+
+    mpg
+
+[1]  8.422622 91.577378
+[1]  0.01714594  0.04898839  0.13471807  0.14206633  1.52843776  3.33365992
+[7] 33.49091265 61.30407094
+[1] 22.41507 77.58493
+numeric(0)
+numeric(0)
+numeric(0)
+numeric(0)
+numeric(0)
+The following objects are masked from mtcars (pos = 3):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 4):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 5):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 6):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 7):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 8):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following object is masked from package:ggplot2:
+
+    mpg
+
+[1]  1.173950  7.248672 37.356750 54.220628
+ [1]  0.01714594  0.03429187  0.04898839  0.07103317  0.09307794  0.13471807
+ [7]  0.14206633  0.77156714  0.94792534  1.52843776  2.39308284  2.45676775
+[13] 28.42061431 29.54244844 33.39783471
+[1]  0.01846381 22.41506647 77.56646972
+numeric(0)
+numeric(0)
+numeric(0)
+numeric(0)
+numeric(0)
+The following objects are masked from mtcars (pos = 3):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 4):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 5):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 6):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 7):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 8):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 9):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following object is masked from package:ggplot2:
+
+    mpg
+
+[1]  1.173950  7.248672 10.397838 26.958912 54.220628
+ [1]  0.009797678  0.009797678  0.017145936  0.034291873  0.048988390
+ [6]  0.061235487  0.093077941  0.134718072  0.142066330  0.303728016
+[11]  0.323323372  0.771567139  0.947925342  1.528437760  1.829716357
+[16]  2.393082839 12.771273208 16.771175231 28.410816636 33.397834713
+[1]  0.01846381  3.00960118 19.40546529 25.18463811 52.38183161
+numeric(0)
+numeric(0)
+numeric(0)
+numeric(0)
+numeric(0)
+The following objects are masked from mtcars (pos = 3):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 4):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 5):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 6):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 7):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 8):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 9):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 10):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following object is masked from package:ggplot2:
+
+    mpg
+
+[1]  0.01863412  1.17394950  7.24867232 10.39783844 26.94027765 54.22062797
+ [1]  0.1396169  0.1910547  0.2033018  0.3037280  0.3233234  0.3282222
+ [7]  0.6784892  0.7250282  0.9234311  0.9479253  1.4304610  1.5284378
+[13]  1.8297164  2.0648606  2.2044775  2.9858424  3.1695488  7.4462352
+[19]  8.3549699  9.1216382 10.2067310 13.3076961 13.7755352 17.2806545
+[1]  0.01846381  3.00960118 12.55539143 12.62924668 15.38035451 16.19276219
+[7] 19.40546529 20.80871492
+numeric(0)
+numeric(0)
+numeric(0)
+numeric(0)
+numeric(0)
+The following objects are masked from mtcars (pos = 3):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 4):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 5):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 6):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 7):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 8):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 9):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 10):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 11):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following object is masked from package:ggplot2:
+
+    mpg
+
+[1]  0.01863412  1.17394950  2.02646045  7.24867232 10.39783844 26.94027765
+[7] 52.19416752
+ [1]  0.7617695  0.7936119  0.8866899  0.9528242  0.9773184  1.0459021
+ [7]  1.1218341  1.1340812  1.2051144  1.2639005  1.4304610  1.5284378
+[13]  1.5308872  1.5382354  2.0354676  2.9858424  3.1695488  4.1297213
+[19]  7.2282369  7.4462352  8.3549699  9.1216382 13.3076961 13.7657375
+ [1]  0.01846381  0.40620384  3.00960118  9.15805022  9.84121123 12.55539143
+ [7] 12.62924668 15.38035451 16.19276219 20.80871492
+numeric(0)
+numeric(0)
+numeric(0)
+numeric(0)
+numeric(0)
+The following objects are masked from mtcars (pos = 3):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 4):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 5):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 6):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 7):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 8):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 9):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 10):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 11):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 12):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following object is masked from package:ggplot2:
+
+    mpg
+
+ [1]  0.02795118  0.02795118  0.02795118  0.03260971  0.03260971  0.03260971
+ [7]  0.04658530  0.13975589  0.20497531  0.59163328  0.92704742  0.96431566
+[13]  1.06214479  1.17394950  1.21587627  1.24848598  1.57458306  1.58855865
+[19]  2.21280164  6.84338023  7.24867232  9.27047424 12.01900680 51.46277835
+ [1]  0.1592123  0.1690099  0.1886053  0.2033018  0.2082007  0.2326949
+ [7]  0.2669867  0.2865821  0.3037280  0.3208740  0.3821094  0.4408955
+[13]  0.4580414  0.5241758  0.6417479  0.9503748  1.4304610  2.7751923
+[19]  2.9858424  4.1101259  4.4138539  7.1400578  8.8473032 60.3781904
+ [1]  0.01846381  0.01846381  0.01846381  0.01846381  0.03692762  0.03692762
+ [7]  0.09231905  0.16617430  0.22156573  0.38774003  2.41875923  2.86189069
+[13]  3.00960118  5.52067947  6.85007386  7.21935007  9.15805022  9.78581979
+[19] 15.38035451 16.19276219 20.58714919
+numeric(0)
+numeric(0)
+numeric(0)
+numeric(0)
+numeric(0)
+> #--------------------------
+> 
+> # 11. create the samplewise tree at 3 levels
+> if(flag[11]==1) {
++    levels = c("life", "domain", "phylum", "class", "order", "family", "genus", "species") 
++    colors= c("red", "yellow", "green", "violet", "orange", "blue", "pink", "cyan") 
++    for(i in c(3, 4, 5, 6, 7, 8) ) {
++         pdf(file = paste(output_dir, "combined", "results","figures", sprintf("11.%d.samplewise_%s.pdf", i-2, levels[i]), sep="/"))
++         attach(mtcars)
++         par(mfrow=c(1, 1))
++         par(cex=0.8)
++         df_otu <- read.table(paste(input_dir, "combined", "results", "otu_tree.txt",  sep="/"), header = F, sep = "\t", quote="\"")
++         colnames(df_otu)<-c( "sample_name", "level", "tree")
++       
++         df_otu <- df_otu[ df_otu$level==i, ]
++         x <- nrow(df_otu)
++         for(j in 1:x) {
++           #print(df_otu[x,3])
++           mini.phy <- read.tree(text =as.character(df_otu[j,3]))
++           #mini.phy <- read.tree(text =df_otu[j,3])
++           #print(as.character(df_otu[j,3]))
++           #print(df_otu[j,3])
++           plot(mini.phy, main=df_otu[j,1])
++           
++         }
++       
++         dev.off()
++    }
++ }
+The following objects are masked from mtcars (pos = 3):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 4):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 5):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 6):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 7):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 8):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 9):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 10):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 11):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 12):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 13):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following object is masked from package:ggplot2:
+
+    mpg
+
+The following objects are masked from mtcars (pos = 3):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 4):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 5):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 6):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 7):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 8):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 9):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 10):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 11):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 12):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 13):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 14):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following object is masked from package:ggplot2:
+
+    mpg
+
+The following objects are masked from mtcars (pos = 3):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 4):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 5):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 6):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 7):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 8):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 9):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 10):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 11):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 12):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 13):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 14):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 15):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following object is masked from package:ggplot2:
+
+    mpg
+
+The following objects are masked from mtcars (pos = 3):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 4):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 5):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 6):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 7):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 8):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 9):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 10):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 11):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 12):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 13):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 14):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 15):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 16):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following object is masked from package:ggplot2:
+
+    mpg
+
+The following objects are masked from mtcars (pos = 3):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 4):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 5):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 6):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 7):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 8):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 9):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 10):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 11):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 12):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 13):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 14):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 15):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 16):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 17):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following object is masked from package:ggplot2:
+
+    mpg
+
+The following objects are masked from mtcars (pos = 3):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 4):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 5):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 6):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 7):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 8):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 9):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 10):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 11):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 12):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 13):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 14):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 15):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 16):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 17):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following objects are masked from mtcars (pos = 18):
+
+    am, carb, cyl, disp, drat, gear, hp, mpg, qsec, vs, wt
+
+The following object is masked from package:ggplot2:
+
+    mpg
+
+> #--------------------------
+> 
+> # 12. create the bubble plots 
+> if(flag[12]==1) {
++    # summarize annotations
++    pdf(file = paste(output_dir, "combined", "results","figures", "12.combined_phylum_bubble_plot.pdf", sep="/"))
++    df_otu <- read.table(paste(input_dir, "combined", "results", "otu_table.txt",  sep="/"), header = T, sep = "\t", quote="\"")
++    df_otu_mt <- melt(df_otu)
++    #head(df_otu_mt)
++    sum(df_otu_mt$value)
++    df_otu_mt_sp <- cSplit(df_otu_mt, "taxonomy", sep = ";")
++    
++    sum(df_otu_mt_sp$value)
++    taxsum <- summaryBy(value ~variable + taxonomy_2, FUN=sum, data = df_otu_mt_sp)
++    
++    # clean up input
++    df_sum<- (dcast(taxsum,taxonomy_2~variable))
++    #head(df_sum)
++    mylist <- df_sum$taxonomy_2
++    x<- length(mylist)
++    mylist <- c(as.character(mylist[-x]), c("Undefined"))
++    rownames(df_sum) <- mylist
++    df_sum <- (df_sum[,-1])
++    #apply(t(df_sum), 1, sum)
++    comm_sum <- decostand(t(df_sum), method = "total")*100
++    #apply(comm_sum, 1, sum)
++    
++    print("hello")
++    comm_sum_mt <- melt(comm_sum)
++    #head(comm_sum_mt)
++    
++    #jpeg(file = paste(output_dir, "Phylum_HeatMap.jpeg", sep="/"))
++    #pheatmap(comm_sum)
++    #dev.off()
++    p <- ggplot(data = comm_sum_mt,  aes(x =Var1, y =Var2), las=0) 
++    p <- p + geom_point(aes(size = value,)) + scale_size(range = c(0,10) ) 
++    p <- p + theme(axis.title.x=element_blank(), axis.title.y=element_blank(), legend.title=element_blank())
++    p <- p +  theme(axis.text.x = element_text(angle = 90, hjust = 1))
++    p <- p + ggtitle("bubble plot for various phyla across samples")
++    dev.off()
++ }
+> #--------------------------
+> 
+> # 13. create number of sequences (#molecues) for each Taxonomy
+> if(flag[13]==1) {
++    dat<-read.table(paste(output_dir, "combined", "results",'num_molecules_per_taxon.txt', sep='/'), sep='\t', header=TRUE)
++    pdf(paste(output_dir, "combined", "results", "figures",  "13.samplewise_stacked_barplot_molecules_per_taxon.pdf", sep="/"))
++    par(mar=c(3,13,3,2))
++    
++    # normalize by row
++    
++    sorted_sums<-sort(apply(dat, 2,sum), decreasing=TRUE)
++    N = ncol(dat)
++    if( N > 25 ) {
++       cutoffN<-sorted_sums[25] 
++       dat<-dat[ ,colSums(dat) > cutoffN] 
++       dat<-dat[ ,order(colSums(dat))] 
++       print(ncol(dat))
++    }
++    maxx<-max(colSums(dat))
++    minx<-min(colSums(dat))
++    
++    #for(i in 1:ncol(dat)){
++    #    print(sum(dat[,i]))
++    #}
++    barplot(as.matrix(dat), horiz=TRUE, las=2, xlim=c(0, maxx), cex.names=0.6, 
++            legend=rownames(dat), col=brewer.pal(nrow(dat), "Paired"), main="% of molecules per taxon", 
++            args.legend = list(x = "bottomright", bty = "n",  cex= 0.65)  )
++            #args.legend = list(x = "topright", bty = "n", inset=c(-0.45, 0), cex= 0.65)  )
++    dev.off()
++ }
+[1] 24
+null device 
+          1 
+> #--------------------------
+> 
+> 
+> 
+> proc.time()
+   user  system elapsed 
+ 24.792   0.092  25.286 

@@ -1,0 +1,27 @@
+# Multiseq v1.0
+# Configuration File
+# Please run: source Multiseqrc before continuing
+
+# Paths for the Python, Perl and Pathway Tools
+MULTISEQ_PATH '/home/ubuntu/multi-seq'
+
+
+# Executables: replace  'yourOS' to your platform linux-flavor or macosx
+# Bit type - bit32 or bit64
+BEDTOOLS 'bedtools'
+BOWTIE2 'bowtie2'
+BOWTIE2BUILD 'bowtie2-build'
+STAR 'STAR'
+EXECUTABLES_DIR 'executables/linux'
+
+NUM_PROCS '3'
+
+# This is the folder where the scripts folder of the Multiseq  pipeline
+# # is installed
+
+PREPROCESS 'libs/python_scripts/Multiseq_preprocess.py'
+#CREATE_REF_GENOME_INDEX 'libs/python_scripts/Multiseq_filter_input.py'
+ALIGN_READS  'libs/python_scripts/Multiseq_align_reads.py'
+CREATE_EXPRESSION_MATRIX 'libs/python_scripts/Multiseq_expression_matrix.py'
+CREATE_FIGURES 'libs/R_scripts/CreateFiguresCode.R'
+

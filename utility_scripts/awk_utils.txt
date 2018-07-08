@@ -1,0 +1,1 @@
+(for v in V1 V2 V3 V4 V5 V6 V7 V8 V9; do  grep -v ">"  outputd/zymodup/results/vregions/*${v}*unfil*  | awk -v V=${v} 'BEGIN {min=1000; max=0}{ if( length($0)>max) max=length($0); if(length($0) > 0 && length($0) < min) min=length($0);  }  END{print "vregions:"V"_min_length "int(min*0.9);  print  "vregions:"V"_max_length "int(max*1.10)}' ; done;) 
